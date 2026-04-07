@@ -9,6 +9,7 @@ RESTAURANT_INFO = {
     "services": ["Sur place", "À emporter", "Service traiteur"],
     "horaires": "Lundi au Samedi, 11h à 18h",
     "jours_ouverture": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+    "jours_fermeture": ["Dimanche"],
 }
 
 ACCOMPAGNEMENTS = [
@@ -33,12 +34,12 @@ MENU = {
     "viandes_poissons": {
         "titre": "🥩 Viandes & Poissons",
         "items": [
-            {"nom": "Sole",                "prix": "6500 - 13000", "dispo": "Tous les jours", "id": "V1"},
+            {"nom": "Sole",                "prix": "6500 min - 13000 max", "dispo": "Tous les jours", "id": "V1"},
             {"nom": "Pintade",             "prix": 4500,           "dispo": "Tous les jours", "id": "V2"},
             {"nom": "Lapin",               "prix": 4500,           "dispo": "Tous les jours", "id": "V3"},
             {"nom": "Langue de bœuf",      "prix": 4500,           "dispo": "Tous les jours", "id": "V4"},
-            {"nom": "Poulet braisé",       "prix": "3500 - 6000",  "dispo": "Tous les jours", "id": "V5"},
-            {"nom": "Bar / Carpe / Daurade","prix": "3500 - 7000", "dispo": "Tous les jours", "id": "V6"},
+            {"nom": "Poulet braisé",       "prix": "3500 min - 6000 max",  "dispo": "Tous les jours", "id": "V5"},
+            {"nom": "Bar / Carpe / Daurade","prix": "3500 min - 7000 max", "dispo": "Tous les jours", "id": "V6"},
         ]
     }
 }
