@@ -40,7 +40,7 @@ STATE_COMMANDE_QTE     = "commande_qte"
 STATE_COMMANDE_SUITE   = "commande_suite"
 STATE_CONFIRMATION     = "confirmation"
 STATE_TERMINE          = "termine"
-STATE_TRAITEUR	       = "service-traiteur"
+STATE_TRAITEUR         = "service-traiteur"
 
 def get_session(phone: str) -> dict:
     """Récupère ou initialise la session d'un utilisateur."""
@@ -168,7 +168,7 @@ def process_message(phone: str, message: str) -> str:
             f"*2* — 📅 Faire une réservation\n"
             f"*3* — 🛍️ Commander (à emporter)\n"
             f"*4* — ℹ️ Informations & contact\n"
-	    f"*5* -    Solliciter notre service traiteur\n\n"
+        f"*5* -    Solliciter notre service traiteur\n\n"
             f"_Tapez le numéro de votre choix_"
         )
 
@@ -208,11 +208,11 @@ def process_message(phone: str, message: str) -> str:
                 "🍽️ Spécialités africaines & européennes\n"
                 "🛎️ Sur place | À emporter | Traiteur\n"
                 "🕐 Lundi — Samedi : 11h à 18h\n\n"
-		"   Nous sommes situés à Guinkomey Vons Chez Alex, à côté de l'Hotel Nicolif\n"
+        "   Nous sommes situés à Guinkomey Vons Chez Alex, à côté de l'Hotel Nicolif\n"
                 "📞 Pour joindre le restaurant, répondez directement sur ce numéro.\n\n"
                 "_Tapez *0* pour revenir au menu principal_"
             )
-	elif msg == "5":
+    elif msg == "5":
             session["state"] = STATE_TRAITEUR
             return (
                 "📞 Pour joindre le restaurant, appelez directement sur ce numéro.\n\n"
@@ -521,7 +521,7 @@ def process_message(phone: str, message: str) -> str:
             f"*2* — 📅 Faire une réservation\n"
             f"*3* — 🛍️ Commander (à emporter)\n"
             f"*4* — ℹ️ Informations & contact\n"
-	    f"*5* -    Service traiteur"
+        f"*5* -    Service traiteur"
         )
 
     # Fallback
