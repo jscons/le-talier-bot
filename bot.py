@@ -40,7 +40,7 @@ STATE_COMMANDE_QTE     = "commande_qte"
 STATE_COMMANDE_SUITE   = "commande_suite"
 STATE_CONFIRMATION     = "confirmation"
 STATE_TERMINE          = "termine"
-
+STATE_TRAITEUR	       = "service-traiteur"
 
 def get_session(phone: str) -> dict:
     """Récupère ou initialise la session d'un utilisateur."""
@@ -157,7 +157,7 @@ def process_message(phone: str, message: str) -> str:
     # ══════════════════════════════════════════════
     # ÉTAT : ACCUEIL
     # ══════════════════════════════════════════════
-    if state == STATE_ACCUEIL or msg in ["menu", "bonjour", "bonsoir", "salut", "hello", "0"]:
+    if state == STATE_ACCUEIL or msg in ["menu", "bonjour", "bonsoir", "salut", "hello", "0", "cc"]:
         session["state"] = STATE_MENU_PRINCIPAL
         return (
             f"👋 Bienvenue au *Restaurant Le Talier* !\n"
@@ -167,7 +167,8 @@ def process_message(phone: str, message: str) -> str:
             f"*1* — 📋 Voir le menu\n"
             f"*2* — 📅 Faire une réservation\n"
             f"*3* — 🛍️ Commander (à emporter)\n"
-            f"*4* — ℹ️  Informations & contact\n\n"
+            f"*4* — ℹ️ Informations & contact\n"
+	    f"*5* -    Solliciter notre service traiteur\n\n"
             f"_Tapez le numéro de votre choix_"
         )
 
@@ -207,14 +208,19 @@ def process_message(phone: str, message: str) -> str:
                 "🍽️ Spécialités africaines & européennes\n"
                 "🛎️ Sur place | À emporter | Traiteur\n"
                 "🕐 Lundi — Samedi : 11h à 18h\n\n"
+		"   Nous sommes situés à Guinkomey Vons Chez Alex, à côté de l'Hotel Nicolif\n"
                 "📞 Pour joindre le restaurant, répondez directement sur ce numéro.\n\n"
                 "_Tapez *0* pour revenir au menu principal_"
             )
-
+	elif msg == "5":
+            session["state"] = STATE_TRAITEUR
+            return (
+                "📞 Pour joindre le restaurant, appelez directement sur ce numéro.\n\n"
+                "_Tapez *0* pour revenir au menu principal_"
         else:
             return (
                 "❓ Je n'ai pas compris. Tapez :\n"
-                "*1* — Menu | *2* — Réserver | *3* — Commander | *4* — Infos\n"
+                "*1* — Menu | *2* — Réserver | *3* — Commander | *4* — Infos | *5* - Service traiteur\n"
                 "ou *0* pour recommencer."
             )
 
@@ -514,7 +520,8 @@ def process_message(phone: str, message: str) -> str:
             f"*1* — 📋 Voir le menu\n"
             f"*2* — 📅 Faire une réservation\n"
             f"*3* — 🛍️ Commander (à emporter)\n"
-            f"*4* — ℹ️  Informations & contact"
+            f"*4* — ℹ️ Informations & contact\n"
+	    f"*5* -    Service traiteur"
         )
 
     # Fallback
