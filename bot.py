@@ -5,12 +5,8 @@ from twilio.twiml.messaging_response import MessagingResponse
 from menu_data import get_menu_text, get_item_by_id
 from excel_tracker import add_reservation
 from google_calendar import create_reservation_event
-from voice_agent import register_voice_routes
 
 app = Flask(__name__)
-
-# Enregistrer les routes de l'agent vocal
-register_voice_routes(app)
 
 sessions = {}
 
@@ -33,11 +29,6 @@ ACCOMPAGNEMENTS = [
     "Agbeli", "Piron", "Amiwo", "Haricots verts", "Couscous",
     "Riz", "Pommes sautees", "Pommes frites"
 ]
-
-# Numero de telephone pour l'agent vocal traiteur
-# A remplacer par votre vrai numero Twilio Voice
-NUMERO_VOCAL_TRAITEUR = os.environ.get("TWILIO_VOICE_NUMBER", "+14155238886")
-URL_BASE = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "https://le-talier-bot-production.up.railway.app")
 
 
 def get_session(phone):
@@ -141,25 +132,21 @@ def process_message(phone, message):
             "*1* - Voir le menu\n"
             "*2* - Faire une reservation\n"
             "*3* - Commander (a emporter)\n"
-            "*4* - Informations & contact\n"
-            "*5* - Service traiteur (evenement)\n\n"
+            "*4* - Informations & contact\n\n"
             "Tapez le numero de votre choix"
         )
 
     if state == STATE_MENU_PRINCIPAL:
         if msg == "1":
             return get_menu_text() + "\n\nTapez *2* pour reserver | *3* pour commander | *0* menu"
-
         elif msg == "2":
             session["state"] = STATE_RESERVATION_DATE
             session["type_service"] = "sur_place"
             return "RESERVATION SUR PLACE\n\nQuelle est la date souhaitee ?\n(Format: JJ/MM/AAAA - ex: 15/04/2026)"
-
         elif msg == "3":
             session["state"] = STATE_RESERVATION_DATE
             session["type_service"] = "emporter"
             return "COMMANDE A EMPORTER\n\nPour quel jour ?\n(Format: JJ/MM/AAAA - ex: 15/04/2026)"
-
         elif msg == "4":
             return (
                 "RESTAURANT LE TALIER\n\n"
@@ -168,27 +155,8 @@ def process_message(phone, message):
                 "Lundi-Samedi : 11h a 18h\n\n"
                 "Tapez *0* pour revenir au menu"
             )
-
-        elif msg == "5":
-            return (
-                "SERVICE TRAITEUR - Le Talier\n\n"
-                "Pour votre evenement special (mariage, bapteme,\n"
-                "anniversaire, fete d'entreprise...), notre agent\n"
-                "vocal vous accompagne personnellement.\n\n"
-                "Appelez maintenant notre ligne dediee :\n\n"
-                "*" + NUMERO_VOCAL_TRAITEUR + "*\n\n"
-                "Notre assistant vocal vous posera des questions sur :\n"
-                "- La date et l'heure de votre evenement\n"
-                "- Le nombre de convives\n"
-                "- Le type d'evenement\n"
-                "- Vos demandes specifiques et allergies\n\n"
-                "Votre demande sera enregistree automatiquement\n"
-                "et notre equipe vous rappellera pour le devis.\n\n"
-                "_Tapez *0* pour revenir au menu_"
-            )
-
         else:
-            return "Tapez *1* Menu | *2* Reserver | *3* Commander | *4* Infos | *5* Traiteur | *0* Accueil"
+            return "Tapez *1* Menu | *2* Reserver | *3* Commander | *4* Infos | *0* Accueil"
 
     if state == STATE_RESERVATION_DATE:
         if re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", message.strip()):
@@ -270,7 +238,7 @@ def process_message(phone, message):
                 prix_str = str(prix) + " FCFA"
                 return "Plat: *" + item["nom"] + "* - " + prix_str + "\n\nQuelle quantite ? (ex: 1)"
         else:
-            return "ID non reconnu. Tapez un ID valide (ex: S1, V2)\nTapez *FIN* pour terminer"
+            return "ID non reconnu. Consultez le menu et tapez un ID valide (ex: S1, V2)\nTapez *FIN* pour terminer"
 
     if state == STATE_COMMANDE_ACCOMP:
         try:
@@ -362,8 +330,7 @@ def process_message(phone, message):
             "*1* - Voir le menu\n"
             "*2* - Faire une reservation\n"
             "*3* - Commander (a emporter)\n"
-            "*4* - Informations & contact\n"
-            "*5* - Service traiteur (evenement)"
+            "*4* - Informations & contact"
         )
 
     return "Tapez *0* pour revenir au menu principal."
