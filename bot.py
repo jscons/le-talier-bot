@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime
 from flask import Flask, request
 from twilio.twiml.messaging_response import MessagingResponse
 from menu_data import get_menu_text, get_item_by_id
@@ -73,19 +74,34 @@ def reset_session(phone):
 
 
 def calcul_total(commande):
-    total = 0
+    total_min = 0
+    total_max = 0
+    has_range = False
     for item in commande:
         prix = item.get("prix", 0)
         qte = item.get("quantite", 1)
         if isinstance(prix, int):
-            total += prix * qte
+            total_min += prix * qte
+            total_max += prix * qte
         elif isinstance(prix, str) and "-" in prix:
+            has_range = True
             try:
-                prix_min = int(prix.split("-")[0].strip().replace(" ", ""))
-                total += prix_min * qte
+                parts = prix.split("-")
+                prix_min = int(parts[0].strip().replace(" ", ""))
+                prix_max = int(parts[1].strip().replace(" ", ""))
+                total_min += prix_min * qte
+                total_max += prix_max * qte
             except Exception:
                 pass
-    return total
+    return total_min, total_max, has_range
+
+
+def format_total(commande):
+    total_min, total_max, has_range = calcul_total(commande)
+    if has_range:
+        return "Entre *{:,} FCFA* et *{:,} FCFA*".format(total_min, total_max).replace(",", " ")
+    else:
+        return "*{:,} FCFA*".format(total_min).replace(",", " ")
 
 
 def format_recapitulatif(session):
@@ -114,8 +130,7 @@ def format_recapitulatif(session):
             if item.get("accompagnement"):
                 line += " + " + item["accompagnement"]
             lines.append("  " + line)
-        total = calcul_total(session["commande"])
-        lines.append("\nTotal estime: " + str(total) + " FCFA")
+        lines.append("\nTotal previsionnel: " + format_total(session["commande"]))
     lines.append("\n---")
     return "\n".join(lines)
 
@@ -192,9 +207,28 @@ def process_message(phone, message):
 
     if state == STATE_RESERVATION_DATE:
         if re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", message.strip()):
-            session["date"] = message.strip()
-            session["state"] = STATE_RESERVATION_HEURE
-            return "Date: *" + message.strip() + "*\n\nA quelle heure ?\n(Format: HH:MM - ex: 12:30)\nHoraires: 11h00 a 18h00"
+            try:
+                jour, mois, annee = message.strip().split("/")
+                date_obj = datetime(int(annee), int(mois), int(jour))
+                if date_obj.weekday() == 6:
+                    return (
+                        "Nous sommes fermes le *dimanche*.\n\n"
+                        "Le Talier est ouvert du *lundi au samedi*\n"
+                        "de 11h a 18h.\n\n"
+                        "Choisissez une autre date :"
+                    )
+                if date_obj.date() < datetime.now().date():
+                    return (
+                        "Cette date est deja passee.\n"
+                        "Entrez une date future :"
+                    )
+                jours = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"]
+                nom_jour = jours[date_obj.weekday()]
+                session["date"] = message.strip()
+                session["state"] = STATE_RESERVATION_HEURE
+                return "Date: *" + nom_jour + " " + message.strip() + "*\n\nA quelle heure ?\n(Format: HH:MM - ex: 12:30)\nHoraires: 11h00 a 18h00"
+            except Exception:
+                return "Format invalide. Entrez la date en *JJ/MM/AAAA*\nEx: *15/04/2026*"
         else:
             return "Format invalide. Entrez la date en *JJ/MM/AAAA*\nEx: *15/04/2026*"
 
@@ -298,7 +332,7 @@ def process_message(phone, message):
                 return (
                     str(qte) + "x *" + item["nom"] + "* ajoute(s) !\n"
                     + str(nb_items) + " article(s) dans votre commande\n"
-                    "Total: *" + str(session["total"]) + " FCFA*\n\n"
+                    "Total: " + format_total(session["commande"]) + "\n\n"
                     "*1* - Ajouter un autre plat\n"
                     "*2* - Terminer et confirmer\n"
                     "*0* - Menu principal"
@@ -320,7 +354,8 @@ def process_message(phone, message):
 
     if state == STATE_CONFIRMATION:
         if msg in ["oui", "yes", "o", "confirmer", "ok", "confirme"]:
-            session["total"] = calcul_total(session["commande"])
+            total_min, total_max, has_range = calcul_total(session["commande"])
+            session["total"] = total_min
             try:
                 resa_num = add_reservation(session)
                 excel_status = "Enregistre (N " + str(resa_num) + ")"
@@ -341,7 +376,7 @@ def process_message(phone, message):
                 + session["nom_client"] + "\n"
                 + session["date"] + " a " + session["heure"] + "\n"
                 + str(session["nb_personnes"]) + " personne(s)\n"
-                "Total: *" + str(session["total"]) + " FCFA*\n\n"
+                "Total previsionnel: " + format_total(session["commande"]) + "\n\n"
                 + excel_status + "\n"
                 + cal_status + "\n\n"
                 "Merci ! Le Talier vous attend.\n"
